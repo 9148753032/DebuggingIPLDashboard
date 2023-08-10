@@ -1,0 +1,371 @@
+                                                                          HOME
+
+import {Component} from 'react'
+import Loader from 'react-loader-spinner'
+
+import TeamCard from '../TeamCard'
+
+import './index.css'
+
+const teamsApiUrl = 'https://apis.ccbp.in/ipl'
+
+class Home extends Component {
+  state = {
+    isLoading: true,
+    teamsData: [],
+  }
+
+  componentDidMount() {
+    this.getTeams()
+  }
+
+  getTeams = async () => {
+    const response = await fetch(teamsApiUrl)
+    const fetchedData = await response.json()
+    const formattedData = fetchedData.teams.map(team => ({
+      name: team.name,
+      id: team.id,
+      teamImageURL: team.team_image_url,
+    }))
+
+    this.setState({
+      teamsData: formattedData,
+      isLoading: false,
+    })
+  }
+
+  renderTeamsList = () => {
+    const {teamsData} = this.state
+
+    return (
+      <ul className="teams-list">
+      {teamsData.map(team => (
+        <TeamCard teamDetails={team} key={team.id} />
+      ))}
+      </ul>
+    )
+  }
+
+  renderLoader = () => (
+    <div data-testid="loader" className="loader-container">
+      <Loader type="Oval" color="#ffffff" height={50} />
+    </div>
+  )
+
+  render() {
+    const {isLoading} = this.state
+
+    return (
+      <div className="home-route-container">
+        <div className="teams-list-container">
+          <div className="ipl-dashboard-heading-container">
+            <img
+              src="https://assets.ccbp.in/frontend/react-js/ipl-logo-img.png"
+              alt="ipl logo"
+              className="ipl-logo"
+            />
+            <h1 className="ipl-dashboard-heading">IPL Dashboard</h1>
+          </div>
+          {isLoading ? this.renderLoader() : this.renderTeamsList()}
+        </div>
+      </div>
+    )
+  }
+}
+
+export default Home
+
+                                                                                  LatestMatch
+
+import './index.css'
+
+const LatestMatch = props => {
+  const {latestMatchData} = props
+  const {
+    competingTeam,
+    date,
+    venue,
+    result,
+    competingTeamLogo,
+    firstInnings,
+    secondInnings,
+    manOfTheMatch,
+    umpires,
+  } = latestMatchData
+
+  return (
+    <div className="latest-match-container">
+      <h1 className="latest-match-heading">Latest Matches</h1>
+      <div className="latest-match-card">
+        <div className="latest-match-details-logo-container">
+          <div className="latest-match-details-1">
+            <p className="latest-match-team-name">{competingTeam}</p>
+            <p className="latest-match-date">{date}</p>
+            <p className="match-details">{venue}</p>
+            <p className="match-details">{result}</p>
+          </div>
+          <img
+            src={competingTeamLogo}
+            className="latest-match-team-logo"
+            alt={`latest match ${competingTeam}`}
+          />
+        </div>
+        <hr className="separator" />
+        <div className="latest-match-details-2">
+          <p className="latest-match-details-label">First Innings</p>
+          <p className="latest-match-details-value">{firstInnings}</p>
+          <p className="latest-match-details-label">Second Innings</p>
+          <p className="latest-match-details-value">{secondInnings}</p>
+          <p className="latest-match-details-label">Man Of The Match</p>
+          <p className="latest-match-details-value">{manOfTheMatch}</p>
+          <p className="latest-match-details-label">Umpires</p>
+          <p className="latest-match-details-value">{umpires}</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default LatestMatch
+
+                                                                                  MatchCard
+
+import './index.css'
+
+const MatchCard = props => {
+  const {matchDetails} = props
+  const {competingTeamLogo, competingTeam, matchStatus, result} = matchDetails
+  const getMatchStatusClassName = status =>
+    status === 'Won' ? 'match-won' : 'match-lost'
+  const matchStatusClassName = `match-status ${getMatchStatusClassName(
+    matchStatus,
+  )}`
+
+  return (
+    <li className="match-item">
+      <img
+        src={competingTeamLogo}
+        className="competing-team-logo"
+        alt={`competing team ${competingTeam}`}
+      />
+      <p className="competing-team-name">{competingTeam}</p>
+      <p className="result">{result}</p>
+      <p className={matchStatusClassName}>{matchStatus}</p>
+    </li>
+  )
+}
+
+export default MatchCard
+
+                                                                                        NotFound
+
+import './index.css'
+
+const NotFound = () => (
+  <div className="not-found-route-container">
+    <h1 className="not-found-heading">Page Not Found !!</h1>
+  </div>
+)
+
+export default NotFound
+
+                                                                                        TeamCard
+
+import {Link} from 'react-router-dom'
+
+import './index.css'
+
+const TeamCard = props => {
+  const {teamDetails} = props
+  const {name, id, teamImageURL} = teamDetails
+
+  return (
+    <li className="team-item">
+      <Link to={`/team-matches/${id}`} className="link">
+        <img src={teamImageURL} alt={name} className="team-logo" />
+        <p className="team-name">{name}</p>
+      </Link>
+    </li>
+  )
+}
+
+export default TeamCard
+
+                                                                                        TeamMatches
+
+import {Component} from 'react'
+import Loader from 'react-loader-spinner'
+
+import LatestMatch from '../LatestMatch'
+import MatchCard from '../MatchCard'
+
+import './index.css'
+
+const teamMatchesApiUrl = 'https://apis.ccbp.in/ipl/'
+
+class TeamMatches extends Component {
+  state = {
+    isLoading: true,
+    teamMatchesData: {},
+  }
+
+  componentDidMount() {
+    this.getTeamMatches
+  }
+
+  getFormattedData = data => ({
+    umpires: data.umpires,
+    result: data.result,
+    manOfTheMatch: data.man_of_the_match,
+    id: data.id,
+    date: data.date,
+    venue: data.venue,
+    competingTeam: data.competing_team,
+    competingTeamLogo: data.competing_team_logo,
+    firstInnings: data.first_innings,
+    secondInnings: data.second_innings,
+    matchStatus: data.match_status,
+  })
+
+  getTeamMatches = async () => {
+    const {match} = this.props
+    const {params} = match
+    const {id} = params
+
+    const response = await fetch(`${teamMatchesApiUrl}${id}`)
+    const fetchedData = await response.json()
+    const formattedData = {
+      teamBannerURL: fetchedData.team_banner_url,
+      latestMatch: this.getFormattedData(fetchedData.latest_match_details),
+      recentMatches: fetchedData.recent_matches.map(eachMatch =>
+        this.getFormattedData(eachMatch),
+      ),
+    }
+
+    this.setState({teamMatchesData: formattedData, isLoading: false})
+  }
+
+  renderRecentMatchesList = () => {
+    const {teamMatchesData} = this.state
+    const {recentMatches} = teamMatchesData
+
+    return (
+      <ul className="recent-matches-list">
+        {recentMatches.map(recentMatch => (
+          <MatchCard matchDetails={recentMatch} key={recentMatch.id} />
+        ))}
+      </ul>
+    )
+  }
+
+  renderTeamMatches = () => {
+    const {teamMatchesData} = this.state
+    const {teamBannerURL, latestMatch} = teamMatchesData
+
+    return (
+      <div className="responsive-container">
+        <img src={teamBannerURL} alt="team banner" className="team-banner" />
+        <LatestMatch latestMatchData={latestMatch} />
+        {this.renderRecentMatchesList()}
+      </div>
+    )
+  }
+
+  renderLoader = () => (
+    <div data-testid="loader" className="loader-container">
+      <Loader type="Oval" color="#ffffff" height={50} />
+    </div>
+  )
+
+  getRouteClassName = () => {
+    const {match} = this.props
+    const {params} = match
+    const {id} = params
+
+    switch (id) {
+      case 'RCB':
+        return 'rcb'
+      case 'KKR':
+        return 'kkr'
+      case 'KXP':
+        return 'kxp'
+      case 'CSK':
+        return 'csk'
+      case 'RR':
+        return 'rr'
+      case 'MI':
+        return 'mi'
+      case 'SH':
+        return 'srh'
+      case 'DC':
+        return 'dc'
+      default:
+        return ''
+    }
+  }
+
+  render() {
+    const {isLoading} = this.state
+    const className = `team-matches-container ${this.getRouteClassName()}`
+
+    return (
+      <div className={className}>
+        {isLoading ? this.renderLoader() : this.renderTeamMatches()}
+      </div>
+    )
+  }
+}
+
+export default TeamMatches
+
+                                                                                          App.css
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+                                                                                        App.Js
+
+import {Route, Switch} from 'react-router-dom'
+
+import Home from './components/Home'
+import NotFound from './components/NotFound'
+import TeamMatches from './components/TeamMatches'
+
+import './App.css'
+
+const App = () => (
+    <Switch>
+    <Route exact path="/" component={Home} />
+    <Route path="/team-matches/:id" component={TeamMatches} />
+    <Route component={NotFound} />
+    </Switch>
+)
+
+export default App
+
+                                                                                      Index.Js
+
+import React from 'react'
+import ReactDOM from 'react-dom'
+import {BrowserRouter} from 'react-router-dom'
+
+import App from './App'
+
+ReactDOM.render(
+  <React.StrictMode>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </React.StrictMode>,
+  document.getElementById('root'),
+)
